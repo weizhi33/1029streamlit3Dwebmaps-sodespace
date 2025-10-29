@@ -37,56 +37,50 @@ st.plotly_chart(fig, use_container_width=True)
 # 或是一個展開器 (expander) 的寬度)。
 
 
-
 st.title("Plotly 3D 地圖 (網格 - DEM 表面)")
 
-# --- 1. 讀取範例 DEM 資料 (使用內建數據集) ---
+# --- 1. 讀取範例 DEM 資料 (改用 plotly.graph_objects 內建數據) ---
 
-# Plotly 內建的 "volcano" (火山) DEM 數據。
-# px.data.volcano() 載入的是一個 Pandas DataFrame
-# .values 會提取 DataFrame 底層的 NumPy 2D 陣列，每個格子的值就是海拔 (Z)
 try:
-    z_data = px.data.volcano().values
+    # 直接從 go.Figure() 的內部數據中獲取 volcano 數據
+    # 這通常比 px.data.volcano() 更穩定和兼容
+    # 它是一個包含多個預設 trace 的 Figure 物件，我們需要提取其中的 z 數據
+    # 這裡我們假設 volcano 數據通常是作為一個 surface trace 的 z 值存在
+    
+    # 創建一個只包含 volcano 數據的 Figure (暫時用來提取數據)
+    temp_fig = go.Figure(data=go.Surface(z=go.datasets.volcano())) # 直接從 datasets 載入
+    z_data = temp_fig.data[0].z # 提取第一個 trace 的 z 數據
+
 except Exception as e:
-    # 如果載入內建數據也失敗 (極罕見)，則給出提示並使用一個模擬數據
-    st.error(f"無法載入 Plotly 內建的 'volcano' 數據: {e}")
-    # 創建一個簡單的模擬平面數據作為備用
-    z_data = [[i*j for i in range(10)] for j in range(10)]
+    st.error(f"無法載入 Plotly 內建的 'volcano' 數據，請檢查 Plotly 版本: {e}")
+    st.write("已使用模擬數據繪製。請嘗試更新 Plotly 函式庫 (`pip install --upgrade plotly`)")
+    # 如果載入失敗，我們使用一個更複雜的模擬數據，使其看起來不像平面
+    import numpy as np
+    x = np.linspace(-5, 5, 50)
+    y = np.linspace(-5, 5, 50)
+    X, Y = np.meshgrid(x, y)
+    z_data = np.sin(np.sqrt(X**2 + Y**2)) * 20 + 50 # 模擬一個山狀地形
 
 
 # --- 2. 建立 3D Surface 圖 ---
-# 建立一個 Plotly 的 Figure 物件
 fig = go.Figure(
     data=[
-        # 建立一個 Surface (曲面) trace
         go.Surface(
-            # 使用內建的 volcano 數據的 2D 陣列
             z=z_data, 
-
-            # colorscale 參數指定用於根據 z 值 (高度) 對曲面進行著色的顏色映射方案。
-            # 這裡使用 "Plasma" 顏色，視覺效果鮮明。
             colorscale="Plasma" 
         )
     ] 
 )
 
 # --- 3. 調整 3D 視角和外觀 ---
-# 使用 update_layout 方法來修改圖表的整體佈局和外觀設定
 fig.update_layout(
-    # 設定圖表的標題文字，以匹配新的資料
     title="Plotly 內建 Volcano 3D 地形圖 (可旋轉)", 
-
-    # 設定圖表的寬度和高度 (單位：像素)
     width=800,
     height=700,
-
-    # scene 參數用於配置 3D 圖表的場景 (座標軸、攝影機視角等)
     scene=dict(
-        # 設定 X, Y, Z 座標軸的標籤文字
         xaxis_title='X 網格索引',
         yaxis_title='Y 網格索引',
         zaxis_title='海拔/高度 (Z)'
-        # 由於是內建的純粹數學網格，軸標籤可以更通用
     )
 )
 
