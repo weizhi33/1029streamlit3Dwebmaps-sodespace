@@ -3,24 +3,52 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
+# 設定頁面配置，提高可讀性和寬度
+st.set_page_config(
+    page_title="Plotly 3D 地圖 (向量 - 地球儀)",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-st.title("Plotly 3D 地圖 (向量 - 地球儀)")
+st.title("Plotly 3D 地圖 (向量 - 地球儀) - 人均 GDP 視覺化")
+st.markdown("""
+    這個互動式地球儀展示了 **2007 年全球各國的人均 GDP**。
+    - **點的大小**：反映該國的**人均 GDP**。
+    - **點的顏色**：區分**不同的大洲**。
+    
+    您可以拖曳地球儀來旋轉視角。
+""")
 
 # --- 1. 載入 Plotly 內建的範例資料 ---
+# 載入 Gapminder 數據集並篩選出 2007 年的資料
 df = px.data.gapminder().query("year == 2007")
 
 # --- 2. 建立 3D 地理散點圖 (scatter_geo) ---
 fig = px.scatter_geo(
     df,
-    locations="iso_alpha",  # 國家代碼
-    color="continent",      # 依據大陸洲別上色
-    hover_name="country",   # 滑鼠懸停時顯示國家名稱
+    locations="iso_alpha",    # 國家代碼 (ISO Alpha-3)
+    color="continent",        # 依據大陸洲別上色
+    hover_name="country",     # 滑鼠懸停時顯示國家名稱
     
-    # *** 關鍵修改：將 size 參數從 "pop" 改為 "gdpPercap" ***
-    size="gdpPercap",       # 點的大小代表人均 GDP
+    # *** 關鍵：設定散點大小代表人均 GDP ***
+    size="gdpPercap",         # 點的大小代表人均 GDP
+    
+    # 設定圖表標題
+    title="2007 年全球各國人均 GDP 分佈",
     
     # 關鍵：使用 "orthographic" 投影法來建立 3D 地球儀
     projection="orthographic"
+)
+
+# 進一步美化佈局
+fig.update_layout(
+    margin={"r":0,"t":50,"l":0,"b":0},
+    geo=dict(
+        showland=True,
+        landcolor="lightgray",
+        showcountries=True,
+        countrycolor="gray"
+    )
 )
 
 # --- 3. 在 Streamlit 中顯示 ---
