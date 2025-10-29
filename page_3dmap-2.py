@@ -2,6 +2,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+pip install --upgrade plotly pandas numpy
 
 
 st.title("Plotly 3D 地圖 (向量 - 地球儀)")
@@ -37,29 +38,37 @@ st.plotly_chart(fig, use_container_width=True)
 # 或是一個展開器 (expander) 的寬度)。
 
 
+import streamlit as st
+import pandas as pd 
+import plotly.graph_objects as go
+import numpy as np # 用於創建備用數據
+
+
 st.title("Plotly 3D 地圖 (網格 - DEM 表面)")
 
-# --- 1. 讀取範例 DEM 資料 (改用 plotly.graph_objects 內建數據) ---
+# --- 1. 讀取範例 DEM 資料 (使用 Mt. Bruno 連結 + 錯誤處理) ---
+url = "https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_bruno_elevation.csv"
+use_fallback = False
 
 try:
-    # 直接從 go.Figure() 的內部數據中獲取 volcano 數據
-    # 這通常比 px.data.volcano() 更穩定和兼容
-    # 它是一個包含多個預設 trace 的 Figure 物件，我們需要提取其中的 z 數據
-    # 這裡我們假設 volcano 數據通常是作為一個 surface trace 的 z 值存在
-    
-    # 創建一個只包含 volcano 數據的 Figure (暫時用來提取數據)
-    temp_fig = go.Figure(data=go.Surface(z=go.datasets.volcano())) # 直接從 datasets 載入
-    z_data = temp_fig.data[0].z # 提取第一個 trace 的 z 數據
+    # 嘗試從網路連結讀取您最初使用的 Mt. Bruno 資料
+    z_data = pd.read_csv(url).values
+    st.success("成功載入 Mt. Bruno DEM 數據。")
 
 except Exception as e:
-    st.error(f"無法載入 Plotly 內建的 'volcano' 數據，請檢查 Plotly 版本: {e}")
-    st.write("已使用模擬數據繪製。請嘗試更新 Plotly 函式庫 (`pip install --upgrade plotly`)")
-    # 如果載入失敗，我們使用一個更複雜的模擬數據，使其看起來不像平面
-    import numpy as np
+    # 如果 HTTP 錯誤或其他讀取錯誤發生 (您最初的問題)
+    st.error(f"無法載入 Mt. Bruno 數據 (錯誤: {e.__class__.__name__})。已使用模擬數據繪製。")
+    st.write("請檢查您的網路連線或 Plotly 數據連結是否失效。")
+    use_fallback = True
+
+# --- 如果讀取失敗，創建一個簡單的備用 DEM 數據 ---
+if use_fallback:
+    # 創建一個平滑的山丘狀備用數據 (絕對不需要外部連結或新版本 Plotly)
     x = np.linspace(-5, 5, 50)
     y = np.linspace(-5, 5, 50)
     X, Y = np.meshgrid(x, y)
-    z_data = np.sin(np.sqrt(X**2 + Y**2)) * 20 + 50 # 模擬一個山狀地形
+    # 建立一個中央高點 (高斯分佈) 的 DEM 數據
+    z_data = 80 * np.exp(-(X**2 + Y**2) / 10) 
 
 
 # --- 2. 建立 3D Surface 圖 ---
@@ -67,20 +76,23 @@ fig = go.Figure(
     data=[
         go.Surface(
             z=z_data, 
-            colorscale="Plasma" 
+            # 使用 Viridis 配色，與您的初始程式碼一致
+            colorscale="Viridis" 
         )
     ] 
 )
 
 # --- 3. 調整 3D 視角和外觀 ---
+title_text = "Mt. Bruno 火山 3D 地形圖 (可旋轉)" if not use_fallback else "備用模擬山丘 3D 地形圖 (可旋轉)"
+
 fig.update_layout(
-    title="Plotly 內建 Volcano 3D 地形圖 (可旋轉)", 
+    title=title_text, 
     width=800,
     height=700,
     scene=dict(
-        xaxis_title='X 網格索引',
-        yaxis_title='Y 網格索引',
-        zaxis_title='海拔/高度 (Z)'
+        xaxis_title='經度 (X)',
+        yaxis_title='緯度 (Y)',
+        zaxis_title='海拔 (Z)'
     )
 )
 
