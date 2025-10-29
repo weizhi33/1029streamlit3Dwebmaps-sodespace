@@ -2,6 +2,8 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np # 用於創建備用數據
+
 pip install --upgrade plotly pandas numpy
 
 
@@ -36,12 +38,6 @@ st.plotly_chart(fig, use_container_width=True)
 # use_container_width=True:當設定為 True 時，Streamlit 會忽略 Plotly 圖表物件本身可能設定的寬度，
 # 並強制讓圖表的寬度自動延展，以填滿其所在的 Streamlit 容器 (例如，主頁面的寬度、某個欄位 (column) 的寬度，
 # 或是一個展開器 (expander) 的寬度)。
-
-
-import streamlit as st
-import pandas as pd 
-import plotly.graph_objects as go
-import numpy as np # 用於創建備用數據
 
 
 # --- 檢查 Streamlit 環境並設定頁面標題 ---
