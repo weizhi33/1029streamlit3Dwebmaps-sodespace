@@ -36,33 +36,57 @@ st.plotly_chart(fig, use_container_width=True)
 # 並強制讓圖表的寬度自動延展，以填滿其所在的 Streamlit 容器 (例如，主頁面的寬度、某個欄位 (column) 的寬度，
 # 或是一個展開器 (expander) 的寬度)。
 
+
+
 st.title("Plotly 3D 地圖 (網格 - DEM 表面)")
 
-# --- 1. 讀取範例 DEM 資料 ---
-# 將 Mt. Bruno 的資料連結替換為 Mount Hood (胡德山) 的資料連結
-# 資料來源：Plotly 內建的 Mount Hood DEM 數據 (儲存為 CSV)
-z_data = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_hood_elevation.csv")
+# --- 1. 讀取範例 DEM 資料 (使用內建數據集) ---
 
-# --- 2. 建立 3D Surface 圖 (其餘部分不變) ---
+# Plotly 內建的 "volcano" (火山) DEM 數據。
+# px.data.volcano() 載入的是一個 Pandas DataFrame
+# .values 會提取 DataFrame 底層的 NumPy 2D 陣列，每個格子的值就是海拔 (Z)
+try:
+    z_data = px.data.volcano().values
+except Exception as e:
+    # 如果載入內建數據也失敗 (極罕見)，則給出提示並使用一個模擬數據
+    st.error(f"無法載入 Plotly 內建的 'volcano' 數據: {e}")
+    # 創建一個簡單的模擬平面數據作為備用
+    z_data = [[i*j for i in range(10)] for j in range(10)]
+
+
+# --- 2. 建立 3D Surface 圖 ---
+# 建立一個 Plotly 的 Figure 物件
 fig = go.Figure(
     data=[
+        # 建立一個 Surface (曲面) trace
         go.Surface(
-            z=z_data.values,
-            colorscale="Viridis"
+            # 使用內建的 volcano 數據的 2D 陣列
+            z=z_data, 
+
+            # colorscale 參數指定用於根據 z 值 (高度) 對曲面進行著色的顏色映射方案。
+            # 這裡使用 "Plasma" 顏色，視覺效果鮮明。
+            colorscale="Plasma" 
         )
-    ]
+    ] 
 )
 
 # --- 3. 調整 3D 視角和外觀 ---
-# 同時修改標題以符合新的資料
+# 使用 update_layout 方法來修改圖表的整體佈局和外觀設定
 fig.update_layout(
-    title="**Mount Hood (胡德山) 3D 地形圖 (可旋轉)**", # 標題修改
+    # 設定圖表的標題文字，以匹配新的資料
+    title="Plotly 內建 Volcano 3D 地形圖 (可旋轉)", 
+
+    # 設定圖表的寬度和高度 (單位：像素)
     width=800,
     height=700,
+
+    # scene 參數用於配置 3D 圖表的場景 (座標軸、攝影機視角等)
     scene=dict(
-        xaxis_title='經度 (X)',
-        yaxis_title='緯度 (Y)',
-        zaxis_title='海拔 (Z)'
+        # 設定 X, Y, Z 座標軸的標籤文字
+        xaxis_title='X 網格索引',
+        yaxis_title='Y 網格索引',
+        zaxis_title='海拔/高度 (Z)'
+        # 由於是內建的純粹數學網格，軸標籤可以更通用
     )
 )
 
