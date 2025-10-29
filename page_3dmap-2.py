@@ -3,9 +3,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
-# 設定頁面配置，提高可讀性和寬度
+# 設定頁面配置
 st.set_page_config(
-    page_title="Plotly 3D 地圖 (向量 - 地球儀)",
+    page_title="Plotly 3D 地圖 (人均 GDP 視覺化)",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -13,8 +13,8 @@ st.set_page_config(
 st.title("Plotly 3D 地圖 (向量 - 地球儀) - 人均 GDP 視覺化")
 st.markdown("""
     這個互動式地球儀展示了 **2007 年全球各國的人均 GDP**。
-    - **點的大小**：反映該國的**人均 GDP**。
-    - **點的顏色**：區分**不同的大洲**。
+    - **點的大小**：反映該國的**人均 GDP** (`gdpPercap`)。
+    - **點的顏色**：區分**不同的大洲** (`continent`)。
     
     您可以拖曳地球儀來旋轉視角。
 """)
@@ -30,8 +30,8 @@ fig = px.scatter_geo(
     color="continent",        # 依據大陸洲別上色
     hover_name="country",     # 滑鼠懸停時顯示國家名稱
     
-    # *** 關鍵：設定散點大小代表人均 GDP ***
-    size="gdpPercap",         # 點的大小代表人均 GDP
+    # 關鍵：設定散點大小代表人均 GDP
+    size="gdpPercap",         # 點的大小代表人均 GDP (gdpPercap)
     
     # 設定圖表標題
     title="2007 年全球各國人均 GDP 分佈",
