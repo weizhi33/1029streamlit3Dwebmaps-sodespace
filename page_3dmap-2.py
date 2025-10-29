@@ -44,6 +44,7 @@ import plotly.graph_objects as go
 import numpy as np # 用於創建備用數據
 
 
+# --- 檢查 Streamlit 環境並設定頁面標題 ---
 st.title("Plotly 3D 地圖 (網格 - DEM 表面)")
 
 # --- 1. 讀取範例 DEM 資料 (使用 Mt. Bruno 連結 + 錯誤處理) ---
@@ -51,14 +52,14 @@ url = "https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_brun
 use_fallback = False
 
 try:
-    # 嘗試從網路連結讀取您最初使用的 Mt. Bruno 資料
+    # 嘗試從網路連結讀取 Mt. Bruno 資料
     z_data = pd.read_csv(url).values
-    st.success("成功載入 Mt. Bruno DEM 數據。")
+    st.success("✅ 成功載入 Mt. Bruno DEM 數據。")
 
 except Exception as e:
-    # 如果 HTTP 錯誤或其他讀取錯誤發生 (您最初的問題)
-    st.error(f"無法載入 Mt. Bruno 數據 (錯誤: {e.__class__.__name__})。已使用模擬數據繪製。")
-    st.write("請檢查您的網路連線或 Plotly 數據連結是否失效。")
+    # 如果網路錯誤 (HTTPError) 或其他讀取錯誤發生，則使用模擬數據
+    st.error(f"⚠️ 無法載入 Mt. Bruno 數據 (錯誤類別: {e.__class__.__name__})。已使用模擬數據繪製。")
+    st.write("請確認網路連線。若需更新 Plotly 函式庫，請在終端機運行 `pip install --upgrade plotly`")
     use_fallback = True
 
 # --- 如果讀取失敗，創建一個簡單的備用 DEM 數據 ---
@@ -76,7 +77,7 @@ fig = go.Figure(
     data=[
         go.Surface(
             z=z_data, 
-            # 使用 Viridis 配色，與您的初始程式碼一致
+            # 使用 Viridis 配色
             colorscale="Viridis" 
         )
     ] 
